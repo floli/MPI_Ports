@@ -112,6 +112,11 @@ int main(int argc, char **argv)
 
   auto options = getOptions(argc, argv);
 
+  if (options.commType == many) {
+    std::cout << "Many communicators are not supported as this time" << std::endl;
+    return -1;
+  }
+  
   // getRanks(options.peers);
   // std::exit(0);
 
