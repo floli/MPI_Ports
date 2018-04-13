@@ -20,7 +20,7 @@ set(LINK_FLAGS ${LINK_FLAGS} ${MPI_LINK_FLAGS})
 
 find_package(Boost 1.60.0
   REQUIRED
-  COMPONENTS log program_options filesystem system)
+  COMPONENTS log log_setup program_options filesystem system thread)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 
 # add_library(EventTimings EventTimings.cpp TableWriter.cpp)
