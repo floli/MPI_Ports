@@ -36,3 +36,8 @@ add_executable(pub_performance publisher_performance_test.cpp)
 target_link_libraries(pub_performance ${MPI_LIBRARIES})
 target_link_libraries(pub_performance ${Boost_LIBRARIES})
 
+
+add_executable(mpi_buffer mpi_buffer.cpp)
+target_link_libraries(mpi_buffer ${MPI_LIBRARIES})
+target_link_libraries(mpi_buffer ${Boost_LIBRARIES})
+target_link_libraries(mpi_buffer Threads::Threads)
