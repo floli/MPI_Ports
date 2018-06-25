@@ -2,32 +2,11 @@
 #include <fstream>
 #include <numeric>
 #include <boost/filesystem.hpp>
+#include "common.hpp"
 #include "EventTimings/EventTimings.hpp"
 #include "programoptions.hpp"
 #include "logging.hpp"
 #include "prettyprint.hpp"
-
-std::string openPort()
-{
-  char p[MPI_MAX_PORT_NAME];
-  MPI_Open_port(MPI_INFO_NULL, p);
-  DEBUG << "Opened port: " << p;
-  return p;
-}
-
-void writePort(boost::filesystem::path path, std::string const & portName)
-{
-  DEBUG << "Writing portname " << portName << " to " << path;
-  create_directory(path.parent_path());
-  std::ofstream ofs(path.string(), std::ofstream::out);
-  ofs << portName;
-}
-
-void writePort(std::string const & serviceName, std::string const & portName)
-{
-  DEBUG << "Publishing portname " << portName << " as name " << serviceName;
-  MPI_Publish_name(serviceName.c_str(), MPI_INFO_NULL, portName.c_str());
-}
 
 
 void publishPort(Options options, std::string const & portName)
@@ -43,24 +22,6 @@ void publishPort(Options options, std::string const & portName)
   if (options.pubType == server)
     writePort(std::string("mpiports"), portName);
   
-}
-
-std::string readPort(boost::filesystem::path path)
-{
-  std::ifstream ifs(path.string(), std::ifstream::in);
-  std::string portName;
-  ifs >> portName;
-  DEBUG << "Read address " << portName << " from " << path;
-  return portName;
-}
-
-std::string readPort(std::string const & name)
-{
-  char p[MPI_MAX_PORT_NAME];
-  DEBUG << "Looking up address at service name " << name;
-  MPI_Lookup_name(name.c_str(), MPI_INFO_NULL, p);
-  DEBUG << "Looked up address " << p;
-  return p;
 }
 
 

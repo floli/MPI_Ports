@@ -37,7 +37,12 @@ target_link_libraries(pub_performance ${MPI_LIBRARIES})
 target_link_libraries(pub_performance ${Boost_LIBRARIES})
 
 
-add_executable(mpi_buffer mpi_buffer.cpp)
-target_link_libraries(mpi_buffer ${MPI_LIBRARIES})
-target_link_libraries(mpi_buffer ${Boost_LIBRARIES})
-target_link_libraries(mpi_buffer Threads::Threads)
+add_executable(send_buffer send_buffer.cpp)
+target_link_libraries(send_buffer ${MPI_LIBRARIES})
+target_link_libraries(send_buffer ${Boost_LIBRARIES})
+target_link_libraries(send_buffer Threads::Threads)
+
+add_executable(ports_send_buffer ports_send_buffer.cpp)
+target_link_libraries(ports_send_buffer ${MPI_LIBRARIES})
+target_link_libraries(ports_send_buffer ${Boost_LIBRARIES})
+target_link_libraries(ports_send_buffer Threads::Threads)

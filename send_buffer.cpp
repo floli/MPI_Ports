@@ -4,14 +4,13 @@
 #include "logging.hpp"
 
 /// Tests the amount of data that can be send, without a matching receive.
-void send()
+void Send()
 {
   double sizeofint = sizeof(int) / 1024.0;
   INFO << "sizeof(int) = " << sizeof(int);
   int i = 0;
   while (true) {
-    INFO << "Iteration " << i << " data send = " << i * sizeofint << " KB";
-    INFO << sizeofint;
+    INFO << "Iteration " << i << ", data send = " << i * sizeofint << " KB";
     MPI_Send(&i, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
     ++i;
   }
@@ -24,8 +23,7 @@ void Isend()
   INFO << "sizeof(int) = " << sizeof(int);
   int i = 0;
   while (true) {
-    INFO << "Iteration " << i << " data send = " << i * sizeofint << " KB";
-    INFO << sizeofint;
+    INFO << "Iteration " << i << ", data send = " << i * sizeofint << " KB";
     MPI_Request req;
     MPI_Isend(&i, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, &req);
     MPI_Wait(&req, MPI_STATUS_IGNORE);
@@ -43,7 +41,7 @@ int main(int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   if (rank == 0) {
-    send();
+    Send();
   }
   
   MPI_Finalize();
