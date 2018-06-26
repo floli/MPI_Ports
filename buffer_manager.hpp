@@ -78,7 +78,6 @@ public:
   void put(Request request, std::unique_ptr<T> buffer)
   {
     std::lock_guard<std::mutex> lock(bufferedRequestsMutex);
-    // auto p = std::make_pair(request, std::move(buffer));
     bufferedRequests.emplace_back(request, std::move(buffer));
   }
 
@@ -102,7 +101,6 @@ public:
       for (auto it = bufferedRequests.begin(); it != bufferedRequests.end();) {
         if (boost::apply_visitor(is_valid_ptr_visitor(), it->second) and it->first.test()) {
           std::lock_guard<std::mutex> lock(bufferedRequestsMutex);
-          // it->second.release();
           boost::apply_visitor(release_visitor(), it->second);
           DEBUG << "Released a ptr, #requests = " << bufferedRequests.size();
           it = bufferedRequests.erase(it);
@@ -123,8 +121,7 @@ private:
 
   using ptr_types = boost::variant< std::unique_ptr<int>, std::unique_ptr<double> >;
 
-  // std::deque<std::pair<Request, std::unique_ptr<int>>> bufferedRequests;
-  std::deque<std::pair<Request, ptr_types>> bufferedRequests;
+  std::list<std::pair<Request, ptr_types>> bufferedRequests;
   
 
   std::thread thread;
