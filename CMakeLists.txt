@@ -25,6 +25,7 @@ add_definitions(-DBOOST_ALL_DYN_LINK)
 
 # add_library(EventTimings EventTimings.cpp TableWriter.cpp)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(mpiports mpiports.cpp)
 target_link_libraries(mpiports ${MPI_LIBRARIES})
@@ -46,3 +47,8 @@ add_executable(ports_send_buffer ports_send_buffer.cpp)
 target_link_libraries(ports_send_buffer ${MPI_LIBRARIES})
 target_link_libraries(ports_send_buffer ${Boost_LIBRARIES})
 target_link_libraries(ports_send_buffer Threads::Threads)
+
+add_executable(ports_send_managed ports_send_managed.cpp)
+target_link_libraries(ports_send_managed ${MPI_LIBRARIES})
+target_link_libraries(ports_send_managed ${Boost_LIBRARIES})
+target_link_libraries(ports_send_managed Threads::Threads)
