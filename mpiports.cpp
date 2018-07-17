@@ -38,27 +38,6 @@ std::string lookupPort(Options options, int remoteRank = 0)
   return portName;
 }
 
-std::vector<int> getRanks(double peers)
-{
-  int rank, size, max = 0, min = 0;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  std::vector<int> ranks;
-  if (peers > 1) {
-    int numPeers = static_cast<int>(peers);
-    // numPeers = rank + numPeers/2 > size ? numPeers 
-    min = rank - numPeers / 2;
-    max = rank + numPeers / 2;
-    min = min < 0 ? 0 : min;
-    max = max >= size ? size-1 : max;
-    ranks.resize(max - min);
-    std::iota(ranks.begin(), ranks.end(), min);
-  }
-  std::cout << "RANKS ON " << rank << " = " << ranks << std::endl;
-  return ranks;
-}
-
-
 
 int main(int argc, char **argv)
 {

@@ -20,7 +20,7 @@ set(LINK_FLAGS ${LINK_FLAGS} ${MPI_LINK_FLAGS})
 
 find_package(Boost 1.60.0
   REQUIRED
-  COMPONENTS log log_setup program_options filesystem system thread)
+  COMPONENTS log log_setup program_options filesystem system thread unit_test_framework)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 
 # add_library(EventTimings EventTimings.cpp TableWriter.cpp)
@@ -32,6 +32,12 @@ target_link_libraries(mpiports ${MPI_LIBRARIES})
 target_link_libraries(mpiports ${Boost_LIBRARIES})
 target_link_libraries(mpiports Threads::Threads)
 target_link_libraries(mpiports EventTimings)
+
+add_executable(tests tests.cpp)
+target_link_libraries(tests ${MPI_LIBRARIES})
+target_link_libraries(tests ${Boost_LIBRARIES})
+target_link_libraries(tests Threads::Threads)
+
 
 add_executable(pub_performance publisher_performance_test.cpp)
 target_link_libraries(pub_performance ${MPI_LIBRARIES})
