@@ -75,10 +75,10 @@ public:
   }
 
   template<typename T>
-  void put(Request request, std::unique_ptr<T> buffer)
+  void put(std::unique_ptr<Request> request, std::unique_ptr<T> buffer)
   {
     std::lock_guard<std::mutex> lock(bufferedRequestsMutex);
-    bufferedRequests.emplace_back(request, std::move(buffer));
+    bufferedRequests.emplace_back(std::move(request), std::move(buffer));
   }
 
   void run()
@@ -99,8 +99,9 @@ public:
     INFO << "Check thread started";
     while (not stopFlag) {
       for (auto it = bufferedRequests.begin(); it != bufferedRequests.end();) {
-        if (boost::apply_visitor(is_valid_ptr_visitor(), it->second) and it->first.test()) {
+        if (boost::apply_visitor(is_valid_ptr_visitor(), it->second) and it->first->test()) {
           std::lock_guard<std::mutex> lock(bufferedRequestsMutex);
+          it->first.release();
           boost::apply_visitor(release_visitor(), it->second);
           DEBUG << "Released a ptr, #requests = " << bufferedRequests.size();
           it = bufferedRequests.erase(it);
@@ -121,9 +122,8 @@ private:
 
   using ptr_types = boost::variant< std::unique_ptr<int>, std::unique_ptr<double> >;
 
-  std::list<std::pair<Request, ptr_types>> bufferedRequests;
+  std::list<std::pair<std::unique_ptr<Request>, ptr_types>> bufferedRequests;
   
-
   std::thread thread;
   std::mutex bufferedRequestsMutex;
   bool stopFlag = false;

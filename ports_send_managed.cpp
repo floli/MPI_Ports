@@ -47,7 +47,8 @@ void Isend(MPI_Comm comm)
     auto sb = std::unique_ptr<double>(new double);
     *sb = i;
     MPI_Isend(sb.get(), 1, MPI_DOUBLE, 0, 0, comm, &req);
-    BufferManager::instance().put(Request(req), std::move(sb));
+    auto reqPtr = std::unique_ptr<Request>(new Request(req));
+    BufferManager::instance().put(std::move(reqPtr), std::move(sb));
     // MPI_Wait(&req, MPI_STATUS_IGNORE);
     // sleep(100);
     ++i;
