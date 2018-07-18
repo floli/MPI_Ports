@@ -42,8 +42,8 @@ std::string lookupPort(Options options, int remoteRank = 0)
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
-  logging::init();
   auto options = getOptions(argc, argv);
+  logging::init(options.debug);
   // MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
   EventRegistry::instance().initialize(options.participant == A ? "A" : "B");
 

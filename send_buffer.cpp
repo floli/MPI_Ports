@@ -35,7 +35,7 @@ void Isend()
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
-  logging::init();
+  logging::init(true);
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);

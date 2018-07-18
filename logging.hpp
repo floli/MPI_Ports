@@ -12,7 +12,7 @@ namespace logging {
 
 using namespace boost::log;
 
-void init()
+void init(bool debug)
 {
   add_common_attributes();
   int rank;
@@ -25,8 +25,10 @@ void init()
     keywords::format = "[%Rank%] [%TimeStamp%]: %Message%"
     );
 
+  // trivial::severity_level level;
+  trivial::severity_level level = debug ? trivial::debug : trivial::info;
   core::get()->set_filter(
-    trivial::severity >= trivial::trace
+    trivial::severity >= level
     );
 
   

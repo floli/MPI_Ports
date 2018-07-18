@@ -27,6 +27,7 @@ struct Options
   PublishingType pubType;
   boost::filesystem::path publishDirectory;
   double peers;
+  bool debug;
 
   explicit Options(boost::program_options::variables_map opt) {
     participant = opt["participant"].as<std::string>() == "A" ? A : B;
@@ -34,6 +35,7 @@ struct Options
     commType = opt["commType"].as<std::string>() == "single" ? single : many;
     pubType = opt["publishingType"].as<std::string>() == "file" ? file : server;
     peers = opt["peers"].as<double>();
+    debug = opt["debug"].as<bool>();
   }
 };
 
@@ -48,13 +50,14 @@ Options getOptions(int argc, char *argv[])
     ("peers", po::value<double>()->default_value(4), "Peers to connect, if value < 1 it is interpreted as a ratio, if > 1, it is an absolute number")
     ("publishDirectory,d", po::value<std::string>()->default_value("./publish"), "Directory to publish connection information to")
     ("commType,c", po::value<std::string>()->required(), "Intercom type: 'single' or 'many'")
-    ("publishingType,m", po::value<std::string>()->required(), "Publishing type: 'file' or 'server'");
-  
-  po::variables_map vm;        
+    ("publishingType,m", po::value<std::string>()->required(), "Publishing type: 'file' or 'server'")
+    ("debug", po::bool_switch(), "Enable debug output");
+
+  po::variables_map vm;
 
   try {
     po::store(parse_command_line(argc, argv, desc), vm);
-    
+
     if (vm.count("help")) {
       std::cout << desc << std::endl << std::endl;
       std::exit(-1);

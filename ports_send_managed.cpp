@@ -77,7 +77,7 @@ int main(int argc, char **argv)
   int provided;
   MPI_Init_thread(&argc, &argv, required, &provided);
   assert(required == provided);
-  logging::init();
+  logging::init(true);
 
   std::string participant = argv[1];
 

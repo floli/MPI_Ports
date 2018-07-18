@@ -54,7 +54,7 @@ void Isend(MPI_Comm comm)
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
-  logging::init();
+  logging::init(true);
 
   std::string participant = argv[1];
 
