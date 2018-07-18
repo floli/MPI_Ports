@@ -99,13 +99,9 @@ int main(int argc, char **argv)
 
   // Compute the number of incoming connection on the receiving side
   Event _determineNumCon("Compute connections", true);
-  int incoming_connections = 0;
+  int incoming_connections;
   if (options.participant == A) {
-    for (int r = 0; r < size; ++r) {
-      auto rs = getRanks(options.peers, size, r);
-      if (std::find(rs.begin(), rs.end(), rank) != rs.end())
-        incoming_connections++;
-    }
+    incoming_connections = invertGetRanks(options.peers, size, rank).size();
   }
   DEBUG << "Expecting " << incoming_connections << " incoming connections.";
   _determineNumCon.stop();

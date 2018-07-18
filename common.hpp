@@ -91,6 +91,16 @@ std::vector<int> getRanks(double peers, int size, int rank)
     return getRanks(static_cast<int>(peers), size, rank);
 }
 
+std::vector<int> invertGetRanks(double peers, int size, int rank)
+{
+  std::vector<int> igr;
+  for (int r = 0; r < size; ++r) {
+      auto rs = getRanks(peers, size, r);
+      if (std::find(rs.begin(), rs.end(), rank) != rs.end())
+        igr.push_back(r);
+    }
+  return igr;
+}
 
 
 void sleep(int ms) {
