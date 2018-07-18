@@ -100,7 +100,7 @@ int main(int argc, char **argv)
   // Compute the number of incoming connection on the receiving side
   Event _determineNumCon("Compute connections", true);
   int incoming_connections = 0;
-  if (options.participant == B) {
+  if (options.participant == A) {
     for (int r = 0; r < size; ++r) {
       auto rs = getRanks(options.peers, size, r);
       if (std::find(rs.begin(), rs.end(), rank) != rs.end())
@@ -114,14 +114,15 @@ int main(int argc, char **argv)
 
   Event _dataexchange("Data Send/Recv", true);
   if (options.participant == A) {
+    for (int i = 0; i < incoming_connections; ++i) {
+      MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
+    }
+  }
+
+  if (options.participant == B) {
     INFO << "Sending data to  " << comRanks;
     for (int comRank : comRanks) {
       MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, comRank, 0, icomm);
-    }
-  }
-  if (options.participant == B) {
-    for (int i = 0; i < incoming_connections; ++i) {
-      MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
     }
   }
   _dataexchange.stop();
