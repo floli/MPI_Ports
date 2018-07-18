@@ -93,32 +93,29 @@ int main(int argc, char **argv)
 
   // ==============================
 
-  auto comRanks = getRanks(options.peers, size, rank); // assumes that remote size is same as ours
-  std::vector<double> dataVec(1000);
-  std::iota(dataVec.begin(), dataVec.end(), 0.5);
-
-  // Compute the number of incoming connection on the receiving side
   Event _determineNumCon("Compute connections", true);
-  int incoming_connections;
-  if (options.participant == A) {
-    incoming_connections = invertGetRanks(options.peers, size, rank).size();
-  }
-  DEBUG << "Expecting " << incoming_connections << " incoming connections.";
+  std::vector<int> comRanks;
+  if (options.participant == A)
+    comRanks = invertGetRanks(options.peers, size, rank);
+  else if (options.participant == B)
+    comRanks = getRanks(options.peers, size, rank);
+    
   _determineNumCon.stop();
 
   // ==============================
-
+  std::vector<double> dataVec(1000);
+  std::iota(dataVec.begin(), dataVec.end(), 0.5);
   Event _dataexchange("Data Send/Recv", true);
   if (options.participant == A) {
-    for (int i = 0; i < incoming_connections; ++i) {
-      MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
+    for (auto r : comRanks) {
+      MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, r, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
     }
   }
 
   if (options.participant == B) {
     INFO << "Sending data to  " << comRanks;
-    for (int comRank : comRanks) {
-      MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, comRank, 0, icomm);
+    for (auto r : comRanks) {
+      MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, r, 0, icomm);
     }
   }
   _dataexchange.stop();
