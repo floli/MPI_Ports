@@ -68,7 +68,7 @@ std::vector<int> getRanks(int peers, int size, int rank)
   for (int i = 0; i < peers; ++i) {
     if (acc1 > 0)
       ranks.push_back(--acc1);
-    if (acc2 < size)
+    if (acc2 < size - 1)
       ranks.push_back(++acc2);
   }
   ranks.resize( std::min(peers, size) );
@@ -78,14 +78,17 @@ std::vector<int> getRanks(int peers, int size, int rank)
 
 /// Ranks to connect to
 /*
- * @param[in] ratio of peers
+ * @param[in] peers Ratio or number of peers to connect
  * @param[in] size Size of participant we connect to
  * @param[in] rank My own rank
  * @returns Sorted list of ranks
  */
-std::vector<int> getRanks(double ratio, int size, int rank)
+std::vector<int> getRanks(double peers, int size, int rank)
 {
-  return getRanks(static_cast<int>(std::round(size * ratio)), size, rank);
+  if (peers < 1) 
+    return getRanks(static_cast<int>(std::round(size * peers)), size, rank);
+  else
+    return getRanks(static_cast<int>(peers), size, rank);
 }
 
 
