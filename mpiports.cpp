@@ -99,25 +99,16 @@ int main(int argc, char **argv)
 
   // Compute the number of incoming connection on the receiving side
   Event _determineNumCon("Compute connections", true);
-  if (options.participant == A) {
-    for (int r = 0; r < size; ++r) {
-      int total_connections = 0;
-      int makes_connection = 0;
-      if (std::find(comRanks.begin(), comRanks.end(), r) != comRanks.end())
-        makes_connection = 1;
-      MPI_Reduce(&makes_connection, &total_connections, 1, MPI_INT, MPI_SUM, r, MPI_COMM_WORLD);
-      if (r == rank) {
-        MPI_Send(&total_connections, 1, MPI_INT, rank, 0, icomm);
-      }
-    }
-  }
-  _determineNumCon.stop();
-
   int incoming_connections = 0;
   if (options.participant == B) {
-    MPI_Recv(&incoming_connections, 1, MPI_INT, rank, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
-    DEBUG << "Expecting " << incoming_connections << " incoming connections.";
+    for (int r = 0; r < size; ++r) {
+      auto rs = getRanks(options.peers, size, r);
+      if (std::find(rs.begin(), rs.end(), rank) != rs.end())
+        incoming_connections++;
+    }
   }
+  DEBUG << "Expecting " << incoming_connections << " incoming connections.";
+  _determineNumCon.stop();
 
   // ==============================
 
