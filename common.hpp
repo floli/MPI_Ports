@@ -91,6 +91,7 @@ std::vector<int> getRanks(double peers, int size, int rank)
     return getRanks(static_cast<int>(peers), size, rank);
 }
 
+/// Inverts getRanks, i.e. who connects to me (rank)?
 std::vector<int> invertGetRanks(double peers, int size, int rank)
 {
   std::vector<int> igr;

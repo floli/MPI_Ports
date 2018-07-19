@@ -50,10 +50,16 @@ int main(int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  if (options.commType == many) {
-    std::cout << "Many communicators are not supported as this time" << std::endl;
-    return -1;
-  }
+  // ==============================
+
+  Event _determineNumCon("Compute connections", true);
+  std::vector<int> comRanks;
+  if (options.participant == A)
+    comRanks = invertGetRanks(options.peers, size, rank); // who connects to me?
+  else if (options.participant == B)
+    comRanks = getRanks(options.peers, size, rank); // to whom I do connect?
+    
+  _determineNumCon.stop();
 
   // ==============================
   Event _publish("Publish", true);
@@ -62,62 +68,85 @@ int main(int argc, char **argv)
       publishPort(options, openPort());
 
     if (options.commType == many)
-      publishPort(options, openPort());
+      for (auto r : comRanks)
+        publishPort(options, openPort());
   }
   _publish.stop(); // Barrier
   // ==============================
 
+  std::map<int, MPI_Comm> comms;
   Event _connect("Connect", true);
-  MPI_Comm icomm;
   std::string portName;
   if (options.participant == A) { // receives connections
     if (options.commType == single) {
       if (rank == 0)
         portName = lookupPort(options);
       INFO << "Accepting connection on " << portName;
-      MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &icomm);
-      INFO << "Received connection";
+      MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
+      DEBUG << "Received connection on " << portName;
     }
+
+    if (options.commType == many) {
+      for (auto r : comRanks) {
+        MPI_Comm icomm;
+        portName = lookupPort(options, r);
+        INFO << "Accepting connection on " << portName;
+        MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &icomm);
+        int connectedRank = -1;
+        MPI_Recv(&connectedRank, 1, MPI_INT, 0, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
+        comms[connectedRank] = icomm;
+        MPI_Send(&rank, 1, MPI_INT, 0, 0, icomm);
+      }
+    }   
   }
 
   if (options.participant == B) { // connects to the intercomms
     if (options.commType == single) {
       if (rank == 0)
         portName = lookupPort(options);
-      INFO << "Trying to connect to " << portName;
-      MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &icomm);
-      INFO << "Connected";
+      INFO << "Connecting to " << portName;
+      MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
+      DEBUG << "Connected to " << portName;
+    }
+    if (options.commType == many) {
+      for (auto r : comRanks) {
+        MPI_Comm icomm;
+        portName = lookupPort(options, r);
+        INFO << "Connecting to " << portName;
+        MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &icomm);
+        MPI_Send(&rank, 1, MPI_INT, 0, 0, icomm);
+        int connectedRank = -1;
+        MPI_Recv(&connectedRank, 1, MPI_INT, 0, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
+        comms[connectedRank] = icomm;        
+      }
     }
   }
   _connect.stop();
 
   // ==============================
-
-  Event _determineNumCon("Compute connections", true);
-  std::vector<int> comRanks;
-  if (options.participant == A)
-    comRanks = invertGetRanks(options.peers, size, rank);
-  else if (options.participant == B)
-    comRanks = getRanks(options.peers, size, rank);
-    
-  _determineNumCon.stop();
-
-  // ==============================
   std::vector<double> dataVec(1000);
   std::iota(dataVec.begin(), dataVec.end(), 0.5);
   Event _dataexchange("Data Send/Recv", true);
-  if (options.participant == A) {
-    for (auto r : comRanks) {
-      MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, r, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
+  for (auto r : comRanks) {
+    int actualRank;
+    MPI_Comm actualComm;
+    if (options.commType == single) {
+      actualRank = r;
+      actualComm = comms[0];
     }
+    if (options.commType == many) {
+      actualRank = 0;
+      actualComm = comms[rank];
+    }
+    if (options.participant == A) {
+      DEBUG << "Receiving data from " << actualRank; 
+      MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, MPI_ANY_TAG, actualComm, MPI_STATUS_IGNORE);
+    }
+    if (options.participant == B)
+      DEBUG << "Sending data to " << actualRank; 
+      MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, 0, actualComm);
   }
 
-  if (options.participant == B) {
-    INFO << "Sending data to  " << comRanks;
-    for (auto r : comRanks) {
-      MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, r, 0, icomm);
-    }
-  }
   _dataexchange.stop();
 
   EventRegistry::instance().finalize();
