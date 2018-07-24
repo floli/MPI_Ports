@@ -2,23 +2,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-
-
-enum ParticipantType {
-  A,
-  B
-};
-
-enum CommunicatorType {
-  single,
-  many
-};
-
-enum PublishingType {
-  file,
-  server
-};
-
+#include "common.hpp"
 
 struct Options
 {
@@ -27,14 +11,16 @@ struct Options
   PublishingType pubType;
   boost::filesystem::path publishDirectory;
   double peers;
+  double rounds;
   bool debug;
 
   explicit Options(boost::program_options::variables_map opt) {
     participant = opt["participant"].as<std::string>() == "A" ? A : B;
+    peers = opt["peers"].as<double>();
     publishDirectory = boost::filesystem::path(opt["publishDirectory"].as<std::string>());
     commType = opt["commType"].as<std::string>() == "single" ? single : many;
     pubType = opt["publishingType"].as<std::string>() == "file" ? file : server;
-    peers = opt["peers"].as<double>();
+    rounds = opt["rounds"].as<double>();
     debug = opt["debug"].as<bool>();
   }
 };
@@ -51,6 +37,7 @@ Options getOptions(int argc, char *argv[])
     ("publishDirectory,d", po::value<std::string>()->default_value("./publish"), "Directory to publish connection information to")
     ("commType,c", po::value<std::string>()->required(), "Intercom type: 'single' or 'many'")
     ("publishingType,m", po::value<std::string>()->required(), "Publishing type: 'file' or 'server'")
+    ("rounds,r", po::value<double>()->default_value(1), "Number of data exchange rounds")    
     ("debug", po::bool_switch(), "Enable debug output");
 
   po::variables_map vm;

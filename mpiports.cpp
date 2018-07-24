@@ -9,11 +9,11 @@
 #include "prettyprint.hpp"
 
 
+/// Writes a port name to file or nameserver
 void publishPort(Options options, std::string const & portName)
 {
   using namespace boost::filesystem;
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int rank = getCommRank();
 
   if (options.commType == many and options.pubType == file)
     writePort(options.publishDirectory / ("A-" + std::to_string(rank) + ".address"), portName);
@@ -23,11 +23,12 @@ void publishPort(Options options, std::string const & portName)
     writePort(std::string("mpiports"), portName);
 }
 
-
-std::string lookupPort(Options options, int remoteRank = 0)
+/// Reads a port for connection to `remoteRank` from file or nameserver
+std::string lookupPort(Options options, int remoteRank = -1)
 {
   std::string portName;
-  if (options.commType == many and options.pubType == file)
+  if (options.commType == many and options.pubType == file) {
+    assert(remoteRank >= 0);
     portName = readPort(options.publishDirectory / ( "A-" + std::to_string(remoteRank) + ".address"));
   if (options.commType == single and options.pubType == file)
     portName = readPort(options.publishDirectory / "intercomm.address");
@@ -46,9 +47,8 @@ int main(int argc, char **argv)
   // MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
   EventRegistry::instance().initialize(options.participant == A ? "A" : "B");
 
-  int rank, size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  int rank = getCommRank();
+  int size = getCommSize();
 
   // ==============================
 

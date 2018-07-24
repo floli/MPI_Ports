@@ -7,6 +7,42 @@
 #include <boost/filesystem.hpp>
 #include "logging.hpp"
 
+enum ParticipantType {
+  A,
+  B
+};
+
+enum CommunicatorType {
+  single,
+  many
+};
+
+enum PublishingType {
+  file,
+  server
+};
+
+
+int getCommSize(MPI_Comm comm = MPI_COMM_WORLD)
+{
+  int size = -1;
+  MPI_Comm_size(comm, &size);
+  return size;
+}
+
+int getRemoteCommSize(MPI_Comm comm)
+{
+  int size = -1;
+  MPI_Comm_remote_size(comm, &size);
+  return size;
+}
+
+int getCommRank(MPI_Comm comm = MPI_COMM_WORLD)
+{
+  int rank = -1;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  return rank;
+}
 
 /// Aquires a port name from MPI
 std::string openPort()
@@ -85,7 +121,7 @@ std::vector<int> getRanks(int peers, int size, int rank)
  */
 std::vector<int> getRanks(double peers, int size, int rank)
 {
-  if (peers < 1) 
+  if (peers < 1)
     return getRanks(static_cast<int>(std::round(size * peers)), size, rank);
   else
     return getRanks(static_cast<int>(peers), size, rank);
@@ -106,4 +142,29 @@ std::vector<int> invertGetRanks(double peers, int size, int rank)
 
 void sleep(int ms) {
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+/// Creates an intercom on rank 0 that can be used to synchronize both particpants
+MPI_Comm createSyncIcomm(ParticipantType p, boost::filesystem::path publishDirectory)
+{
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (rank != 0)
+    return MPI_COMM_NULL;
+
+  MPI_Comm comm;
+  if (p == A) {
+    auto port = openPort();
+    writePort(publishDirectory / "sync-intercomm.address", port);
+    MPI_Comm_accept(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &comm);
+    // MPI_Close_port(port.c_str());
+  }
+  if (p == B) {
+    auto port = readPort(publishDirectory / "sync-intercomm.address");
+    MPI_Comm_connect(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &comm);
+    // MPI_Close_port(port.c_str());
+  }
+  DEBUG << "Created sync intercomm";
+  return comm;
 }
