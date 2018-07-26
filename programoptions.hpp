@@ -36,7 +36,7 @@ Options getOptions(int argc, char *argv[])
     ("peers", po::value<double>()->default_value(4), "Peers to connect, if value < 1 it is interpreted as a ratio, if > 1, it is an absolute number")
     ("publishDirectory,d", po::value<std::string>()->default_value("./publish"), "Directory to publish connection information to")
     ("commType,c", po::value<std::string>()->required(), "Intercom type: 'single' or 'many'")
-    ("publishingType,m", po::value<std::string>()->required(), "Publishing type: 'file' or 'server'")
+    ("publishingType,m", po::value<std::string>()->default_value("file"), "Publishing type: 'file' or 'server'")
     ("rounds,r", po::value<double>()->default_value(1), "Number of data exchange rounds")    
     ("debug", po::bool_switch(), "Enable debug output");
 
