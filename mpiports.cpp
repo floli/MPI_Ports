@@ -62,6 +62,9 @@ int main(int argc, char **argv)
   _determineNumCon.stop();
 
   // ==============================
+  if (options.participant == A)
+    removeDir(options.publishDirectory); // Remove directory, followed by a barrier
+
   Event _publish("Publish", true);
   if (options.participant == A) {
     if (options.commType == single and rank == 0)

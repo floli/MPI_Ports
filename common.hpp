@@ -44,6 +44,14 @@ int getCommRank(MPI_Comm comm = MPI_COMM_WORLD)
   return rank;
 }
 
+void removeDir(boost::filesystem::path path)
+{
+  if (getCommRank() == 0) {
+    boost::filesystem::remove_all(path);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+}
+
 /// Aquires a port name from MPI
 std::string openPort()
 {
