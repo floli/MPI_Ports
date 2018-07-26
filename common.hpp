@@ -47,8 +47,8 @@ int getCommRank(MPI_Comm comm = MPI_COMM_WORLD)
 /// Aquires a port name from MPI
 std::string openPort()
 {
-  char p[MPI_MAX_PORT_NAME];
-  MPI_Open_port(MPI_INFO_NULL, p);
+  std::string p = std::string(MPI_MAX_PORT_NAME, '\0');
+  MPI_Open_port(MPI_INFO_NULL, const_cast<char *>(p.data()));
   DEBUG << "Opened port: " << p;
   return p;
 }
