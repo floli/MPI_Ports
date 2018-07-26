@@ -80,7 +80,11 @@ void writePort(std::string const & serviceName, std::string const & portName)
 /// Reads port from a file
 std::string readPort(boost::filesystem::path path)
 {
-  std::ifstream ifs(path.string(), std::ifstream::in);
+  std::ifstream ifs;
+  while (not ifs.is_open()) {
+    ifs.open(path.string(), std::ifstream::in);
+    std::this_thread::yield();
+  }
   std::string portName;
   ifs >> portName;
   DEBUG << "Read address " << portName << " from " << path;
@@ -143,7 +147,7 @@ std::vector<int> invertGetRanks(double peers, int size, int rank)
       auto rs = getRanks(peers, size, r);
       if (std::find(rs.begin(), rs.end(), rank) != rs.end())
         igr.push_back(r);
-    }
+  }
   return igr;
 }
 
