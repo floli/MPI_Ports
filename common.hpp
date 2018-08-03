@@ -87,6 +87,7 @@ std::string readPort(boost::filesystem::path path)
   }
   std::string portName;
   ifs >> portName;
+  portName.resize(MPI_MAX_PORT_NAME, '\0');
   DEBUG << "Read address " << portName << " from " << path;
   return portName;
 }

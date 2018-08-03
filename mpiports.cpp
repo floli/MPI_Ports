@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   int rank = getCommRank();
   int size = getCommSize();
 
-  auto syncComm = createSyncIcomm(options.participant, options.publishDirectory); // First barrier
+  // auto syncComm = createSyncIcomm(options.participant, options.publishDirectory); // First barrier
   EventRegistry::instance().initialize(options.participant == A ? "A" : "B");
 
   std::map<int, MPI_Comm> comms;
@@ -99,22 +99,20 @@ int main(int argc, char **argv)
 
     if (options.commType == many) {
       portName = lookupPort(options, rank);
+      
       for (auto r : comRanks) {
         MPI_Comm icomm;
         INFO << "Accepting connection on " << portName;
-        DEBUG << "SIZE = " << portName.size();
         MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &icomm);
         DEBUG << "Accepted connection on " << portName;
         DEBUG << "icomm size = " << getRemoteCommSize(icomm);
         int connectedRank = -1;
         MPI_Recv(&connectedRank, 1, MPI_INT, 0, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
-        MPI_Send(&rank, 1, MPI_INT, 0, 0, icomm);
+        // MPI_Send(&rank, 1, MPI_INT, 0, 0, icomm);
         DEBUG << "Received rank number " << connectedRank;
         comms[connectedRank] = icomm;
       }
     }
-    for (auto &c : comms)
-      DEBUG << "Number of remote ranks = " << getRemoteCommSize(c.second);
   }
 
   if (options.participant == B) { // connects to the intercomms
@@ -136,8 +134,8 @@ int main(int argc, char **argv)
         DEBUG << "Connected to rank " << r << " on " << portName;
         MPI_Send(&rank, 1, MPI_INT, 0, 0, icomm);
         int connectedRank = -1;
-        MPI_Recv(&connectedRank, 1, MPI_INT, 0, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
-        comms[connectedRank] = icomm;        
+        // MPI_Recv(&connectedRank, 1, MPI_INT, 0, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
+        comms[r] = icomm;
       }
     }
     // for (auto &c : comms)
@@ -171,7 +169,6 @@ int main(int argc, char **argv)
     }
   }
 
-  DEBUG << "DONE";
   _dataexchange.stop();
 
   EventRegistry::instance().finalize();
