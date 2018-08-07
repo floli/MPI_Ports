@@ -174,6 +174,7 @@ MPI_Comm createSyncIcomm(ParticipantType p, boost::filesystem::path publishDirec
     // MPI_Close_port(port.c_str());
   }
   if (p == B) {
+    sleep(10);
     auto port = readPort(publishDirectory / "sync-intercomm.address");
     MPI_Comm_connect(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &comm);
     // MPI_Close_port(port.c_str());

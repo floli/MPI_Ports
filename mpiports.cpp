@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   int rank = getCommRank();
   int size = getCommSize();
 
-  // auto syncComm = createSyncIcomm(options.participant, options.publishDirectory); // First barrier
+  auto syncComm = createSyncIcomm(options.participant, options.publishDirectory); // First barrier
   EventRegistry::instance().initialize(options.participant == A ? "A" : "B");
 
   std::map<int, MPI_Comm> comms;
@@ -63,8 +63,6 @@ int main(int argc, char **argv)
   else if (options.participant == B)
     comRanks = getRanks(options.peers, size, rank); // to whom I do connect?
 
-  DEBUG << comRanks;
-    
   _determineNumCon.stop();
 
   // ==============================
@@ -84,7 +82,9 @@ int main(int argc, char **argv)
   // ==============================
 
 
-  // if (rank == 0) MPI_Barrier(syncComm);
+  DEBUG << "Finished publishing";
+  
+  if (rank == 0) MPI_Barrier(syncComm);
   
   Event _connect("Connect", true);
   std::string portName;
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
   }
 
   if (options.participant == B) { // connects to the intercomms
-    sleep(1000);
+    // sleep(1000);
     if (options.commType == single) {
       if (rank == 0)
         portName = lookupPort(options);
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
       }
     }
     // for (auto &c : comms)
-      // DEBUG << "Number of remote ranks = " << getRemoteCommSize(c.second);
+    //   DEBUG << "Number of remote ranks = " << getRemoteCommSize(c.second);
   }
   _connect.stop();
 
@@ -163,9 +163,10 @@ int main(int argc, char **argv)
         DEBUG << "Receiving data from " << actualRank;
         MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, MPI_ANY_TAG, actualComm, MPI_STATUS_IGNORE);
       }
-      if (options.participant == B)
+      if (options.participant == B) {
         DEBUG << "Sending data to " << actualRank;
-      MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, 0, actualComm);
+        MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, 0, actualComm);
+      }
     }
   }
 
