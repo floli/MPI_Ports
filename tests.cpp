@@ -5,6 +5,8 @@
 #include "prettyprint.hpp"
 #include <iostream>
 using namespace std;
+using namespace mp;
+
 
 BOOST_AUTO_TEST_CASE(testGetRanksAbsolute)
 {

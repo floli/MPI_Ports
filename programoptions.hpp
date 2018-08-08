@@ -4,6 +4,8 @@
 #include <boost/filesystem.hpp>
 #include "common.hpp"
 
+namespace mp {
+
 struct Options
 {
   ParticipantType participant;
@@ -57,4 +59,6 @@ Options getOptions(int argc, char *argv[])
     std::exit(-1);
   }
   return Options(vm);
+}
+
 }

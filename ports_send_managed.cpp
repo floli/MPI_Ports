@@ -3,6 +3,8 @@
 #include "common.hpp"
 #include "buffer_manager.hpp"
 
+namespace mp {
+
 MPI_Comm accept()
 {
   MPI_Comm icomm;
@@ -68,10 +70,12 @@ void Receive(MPI_Comm comm)
   }
 }
 
+}
 
 /// Launch two mpirun -n 1 processes
 int main(int argc, char **argv)
 {
+  using namespace mp;
   // MPI_Init(&argc, &argv);
   int required = MPI_THREAD_MULTIPLE;
   int provided;

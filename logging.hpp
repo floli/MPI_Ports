@@ -7,6 +7,7 @@
 
 #define DEBUG BOOST_LOG_TRIVIAL(debug)
 #define INFO  BOOST_LOG_TRIVIAL(info)
+#define ERROR  BOOST_LOG_TRIVIAL(error)
 
 namespace logging {
 

@@ -1,6 +1,8 @@
 #include <mpi.h>
 #include "common.hpp"
 
+namespace mp {
+
 MPI_Comm accept()
 {
   MPI_Comm icomm;
@@ -49,10 +51,12 @@ void Isend(MPI_Comm comm)
   }
 }
 
+}
 
 /// Launch two mpirun -n 1 processes
 int main(int argc, char **argv)
 {
+  using namespace mp;
   MPI_Init(&argc, &argv);
   logging::init(true);
 
