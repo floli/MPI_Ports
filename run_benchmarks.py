@@ -2,7 +2,6 @@ import argparse, datetime, contextlib, json, multiprocessing, shlex, socket, sub
 from pathlib import Path
 from shutil import copy
 
-
 def launchSingleRun(cmd, outfile = None):
     outfile = None
     ostream = open(outfile, "a") if outfile else sys.stdout
@@ -20,14 +19,9 @@ def launchRun(cmdA, cmdB, outfileA = None, outfileB = None):
         raise Exception
 
 
-def ccall(cmd,  **kwargs):
-    """ Runs cmd in a shell, returns its return code. Raises exception on error """
-    print(cmd)
-    # return call(cmd, check = True, **kwargs)
-
-
 
 def split_file(inputfile, lines1, lines2, output1, output2):
+    """ Split inputfile in two files, each containing linesN lines. """
     with open(inputfile) as f:
         lines = f.readlines()
 
@@ -44,14 +38,13 @@ def generate_test_sizes(mpisize, platform):
     node_numbers = [1, 2, 3, 4, 6, 8, 10, 12]
     if platform == "hazelhen":
         # Hazelhen node size is 24, only one mpi job per node.
-        sizes = 24 * node_numbers
+        sizes = [24*i for i in node_numbers]
     elif platform == "supermuc":
-        sizes = 28 * node_numbers
+        sizes = [28*i for i in node_numbers]
     else:
-        sizes = 1 * node_numbers
-        sizes = sizes[1:] # remove the first element, because -n 1 can lead to problems
+        sizes = range(2, mpisize)
 
-    return [i for i in sizes if i < mpisize]
+    return [i for i in sizes if i <= mpisize]
 
 def get_mpi_cmd(platform):
     if platform == "hazelhen":
@@ -65,6 +58,14 @@ def get_mpi_cmd(platform):
     else:
         return "mpiexec"
 
+
+def get_machine_file(platform, size, inputfile):
+    if platform == "supermuc":
+        split_file(inputfile, size, size, "mfile.A", "mfile.B")
+        return "-f mfile.A", "-f mfile.B"
+    else:
+        return ["", ""]
+    
 def removeEventFiles(participant):
     p = Path(participant)
     try:
@@ -83,24 +84,31 @@ def doScaling(name, ranks, peers, commTypes, debug):
                   "name" : name}
     
     file_pattern = "{name}-{date}-{participant}.{suffix}"
-    
     for rank, peer, commType in zip(ranks, peers, commTypes):
-        cmd = "{mpi} -n {size} ./mpiports --peers {peers} --commType {comm} --rounds 1000".format(
+        cmd = "{mpi} -n {size} {machinefile} ./mpiports --peers {peers} --commType {comm} --rounds 1000 --participant {participant} {debug}"
+        cmdA = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
+            machinefile = get_machine_file(args.platform, rank, args.mfile)[0],
             peers = peer,
-            comm = commType)
-        if debug:
-            cmd += " --debug"
-        cmdA = cmd + " --participant=A"
-        cmdB = cmd + " --participant=B"
+            comm = commType,
+            participant = "A",
+            debug = "--debug" if debug else "")
+        cmdB = cmd.format(
+            mpi = get_mpi_cmd(args.platform),
+            size = rank,
+            machinefile = get_machine_file(args.platform, rank, args.mfile)[1],
+            peers = peer,
+            comm = commType,
+            participant = "B",
+            debug = "--debug" if debug else "")
 
         print("Running on ranks = {}".format(rank))
         print(cmdA)
+        print(cmdB)
         launchRun(shlex.split(cmdA), shlex.split(cmdB),
                   file_pattern.format(suffix = "out", participant = "A", **file_info),
                   file_pattern.format(suffix = "out", participant = "B", **file_info))                  
-
 
     copy("Events-A.log", file_pattern.format(suffix = "events", participant = "A", **file_info))
     copy("EventTimings-A.log", file_pattern.format(suffix= "timings", participant = "A", **file_info))
@@ -121,7 +129,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--mfile")
-parser.add_argument("--mpisize", type = int, required = True)
+parser.add_argument("--mpisize", help = "Maximum MPI size per participant", type = int, required = True)
 parser.add_argument("--peers", type=float, required = True)
 parser.add_argument("--commType", choices = ["single", "many"], required=True)
 parser.add_argument("--platform", choices = ["supermuc", "hazelhen", "mpich-opt", "mpich", "none"], default = "none")
