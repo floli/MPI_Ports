@@ -14,7 +14,7 @@ def launchSingleRun(cmd, outfile = None):
 def launchRun(cmdA, cmdB, outfileA = None, outfileB = None):
     pA = multiprocessing.Process(target=launchSingleRun, daemon=True, args=(cmdA, outfileA))
     pB = multiprocessing.Process(target=launchSingleRun, daemon=True, args=(cmdB, outfileB))
-    pA.start(); time.sleep(1); pB.start()
+    pA.start(); pB.start()
     pA.join();  pB.join()
     if (pA.exitcode != 0) or (pB.exitcode != 0):
         raise Exception
