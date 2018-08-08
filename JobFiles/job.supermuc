@@ -1,15 +1,16 @@
 #!/bin/bash
 
-TOTALTASKS=28
-NODES=$(($TOTALTASKS / 28))
+TOTALTASKS=56
+# NODES=$(($TOTALTASKS / 28))
+NODES=2
 
 #@ wall_clock_limit = 00:30:00
 #@ job_type = MPICH
 #@ job_name = MPI_Ports
 #@ class = test
-#@ island_count = 1,1
+#@ island_count = 1
 #@ network.MPI = sn_all,not_shared,us
-#@ node = $NODES
+#@ node = 4
 #@ tasks_per_node = 28
 #@ output = $(job_name).$(schedd_host).$(jobid).out
 #@ error = $(job_name).$(schedd_host).$(jobid).err
@@ -24,13 +25,13 @@ NODES=$(($TOTALTASKS / 28))
 export SUBJOB=1
 
 L1=1
-L2=$(($TOTALTASKS / 2))
+L2=56
 sed -n -e "${L1},${L2}p" $LOADL_HOSTFILE >mfile.A
 mpiexec -n $(($L2 - $L1)) -f mfile.A ./mpiports --participant=A --commType=single --publishingType=file --peers=0.3 &
 procA=$!
 
-L1=14
-L2=28
+L1=57
+L2=112
 sed -n -e "${L1},${L2}p" $LOADL_HOSTFILE >mfile.B
 mpiexec -n $(($L2 - $L1)) -f mfile.B ./mpiports --participant=B --commType=single --publishingType=file --peers=0.3 &
 procB=$!

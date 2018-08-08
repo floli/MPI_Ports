@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#@ wall_clock_limit = 00:30:00
+#@ job_type = MPICH
+#@ job_name = MPI_Ports
+#@ class = test
+#@ island_count = 1
+#@ network.MPI = sn_all,not_shared,us
+#@ node = 4
+#@ tasks_per_node = 28
+#@ output = $(job_name).$(schedd_host).$(jobid).out
+#@ error = $(job_name).$(schedd_host).$(jobid).err
+#@ notification=always
+#@ notify_user=florian.lindner@ipvs.uni-stuttgart.de
+#@ energy_policy_tag = my_energy_tag
+#@ minimize_time_to_solution = yes
+#@ queue
+. /etc/profile
+. /etc/profile.d/modules.sh
+
+module unload python
+module load python/3.5_intel
+
+export SUBJOB=1
+
+
+echo $LOADL_HOSTFILE
+cp $LOADL_HOSTFILE ./hostfile
+python run_benchmarks.py --mpisize=56 --commType=single --peers=0.4 --platform=supermuc --mfile $LOADL_HOSTFILE
