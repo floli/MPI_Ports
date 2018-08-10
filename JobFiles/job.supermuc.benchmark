@@ -6,7 +6,7 @@
 #@ class = test
 #@ island_count = 1
 #@ network.MPI = sn_all,not_shared,us
-#@ node = 4
+#@ node = 20
 #@ tasks_per_node = 28
 #@ output = $(job_name).$(schedd_host).$(jobid).out
 #@ error = $(job_name).$(schedd_host).$(jobid).err
@@ -26,4 +26,4 @@ export SUBJOB=1
 
 echo $LOADL_HOSTFILE
 cp $LOADL_HOSTFILE ./hostfile
-python run_benchmarks.py --mpisize=56 --commType=single --peers=0.4 --platform=supermuc --mfile $LOADL_HOSTFILE
+python run_benchmarks.py --mpisize=280 --commType=many --peers=0.4 --platform=supermuc --mfile $LOADL_HOSTFILE

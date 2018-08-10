@@ -1,4 +1,6 @@
-import argparse, sys
+""" Plots the results and creates a CSV for pgfplots. """
+
+import argparse, csv, sys
 import matplotlib.pyplot as plt
 from EventTimings.EventTimings import getDataFrame
 
@@ -20,10 +22,10 @@ sizes = []
 for d in df.Timestamp.unique():
     sizes.append(df[df.Timestamp == d].Rank.max())
 
-
 df = df[df.Rank == 0]
 
 values = {
+    "Publish" : [],
     "Connect" : [],
     "Data Send/Recv" : []}
 
@@ -34,12 +36,18 @@ for row in df.itertuples():
         values[row.Name].append(row.Total)
 
 
+with open(args.file + ".csv", 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["Size"] + list(values))
+    for row in zip(sizes, *values.values()):
+        writer.writerow(row)
+    
 for v in values:
-    plt.plot(sizes, values[v], label = v)
+    plt.plot(sizes, values[v], "d-", label = v)
 
 
 plt.grid()
-plt.xlabel("Ranks")
+plt.xlabel("Ranks per participant")
 plt.ylabel("Time [ms]")
 plt.legend()
 plt.show()

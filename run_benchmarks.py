@@ -35,7 +35,7 @@ def split_file(inputfile, lines1, lines2, output1, output2):
 
 
 def generate_test_sizes(mpisize, platform):
-    node_numbers = [1, 2, 3, 4, 6, 8, 10, 12]
+    node_numbers = [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32]
     if platform == "hazelhen":
         # Hazelhen node size is 24, only one mpi job per node.
         sizes = [24*i for i in node_numbers]
@@ -80,7 +80,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
     removeEventFiles("A")
     removeEventFiles("B")
 
-    file_info = { "date" : datetime.datetime.now().isoformat(),
+    file_info = { "date" : datetime.datetime.now().isoformat(timespec = "seconds"),
                   "name" : name}
     
     file_pattern = "{name}-{date}-{participant}.{suffix}"
