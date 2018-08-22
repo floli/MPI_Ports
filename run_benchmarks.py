@@ -35,7 +35,8 @@ def split_file(inputfile, lines1, lines2, output1, output2):
 
 
 def generate_test_sizes(mpisize, platform):
-    node_numbers = [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32]
+    node_numbers = [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80, 88, 96,
+                    104, 112, 128,  144, 160, 176, 192, 208, 224, 240, 256, 272, 288, 304]
     if platform == "hazelhen":
         # Hazelhen node size is 24, only one mpi job per node.
         sizes = [24*i for i in node_numbers]
@@ -122,7 +123,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
                    "ranks" : ranks,
                    "peers" : peers,
                    "commTypes" : commTypes},
-                  f)
+                  f, indent = 4)
                 
 
 
