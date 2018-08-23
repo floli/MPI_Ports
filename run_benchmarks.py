@@ -63,7 +63,7 @@ def get_mpi_cmd(platform):
 def get_machine_file(platform, size, inputfile):
     if platform == "supermuc":
         split_file(inputfile, size, size, "mfile.A", "mfile.B")
-        return "-f mfile.A", "-f mfile.B"
+        return "mfile.A", "mfile.B"
     else:
         return ["", ""]
     
@@ -81,7 +81,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
     removeEventFiles("A")
     removeEventFiles("B")
 
-    file_info = { "date" : datetime.datetime.now().isoformat(timespec = "seconds"),
+    file_info = { "date" : datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"),
                   "name" : name}
     
     file_pattern = "{name}-{date}-{participant}.{suffix}"
@@ -90,7 +90,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
         cmdA = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
-            machinefile = get_machine_file(args.platform, rank, args.mfile)[0],
+            machinefile = "-f " + get_machine_file(args.platform, rank, args.mfile)[0],
             peers = peer,
             comm = commType,
             participant = "A",
@@ -98,7 +98,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
         cmdB = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
-            machinefile = get_machine_file(args.platform, rank, args.mfile)[1],
+            machinefile = "-f " + get_machine_file(args.platform, rank, args.mfile)[1],
             peers = peer,
             comm = commType,
             participant = "B",

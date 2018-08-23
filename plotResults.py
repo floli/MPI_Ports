@@ -7,7 +7,7 @@ from EventTimings.EventTimings import getDataFrame
 from ipdb import set_trace
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--file')
+parser.add_argument('--file', help = "Timings file")
 
 if len(sys.argv) < 2:
     parser.print_help()
@@ -47,6 +47,7 @@ for v in values:
 
 
 plt.grid()
+plt.title(args.file)
 plt.xlabel("Ranks per participant")
 plt.ylabel("Time [ms]")
 plt.legend()
