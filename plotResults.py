@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """ Plots the results and creates a CSV for pgfplots. """
 
 import argparse, csv, sys
