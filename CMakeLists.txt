@@ -67,3 +67,7 @@ add_executable(ports_send_managed ports_send_managed.cpp)
 target_link_libraries(ports_send_managed ${MPI_LIBRARIES})
 target_link_libraries(ports_send_managed ${Boost_LIBRARIES})
 target_link_libraries(ports_send_managed Threads::Threads)
+
+add_executable(simple_mpi_ports_tester simple_mpi_ports_tester.cpp)
+target_link_libraries(simple_mpi_ports_tester ${MPI_LIBRARIES})
+
