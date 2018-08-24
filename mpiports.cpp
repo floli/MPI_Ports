@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   else if (options.participant == B)
     comRanks = getRanks(options.peers, size, rank); // to whom I do connect?
 
-  _determineNumCon.stop();
+  _determineNumCon.stop(true);
   // ==============================
   
   if (options.participant == A)
@@ -145,11 +145,14 @@ int main(int argc, char **argv)
     // for (auto &c : comms)
     //   DEBUG << "Number of remote ranks = " << getRemoteCommSize(c.second);
   }
-  _connect.stop();
+  _connect.stop(true);
 
   // ==============================
   std::vector<double> dataVec(1000);
   std::iota(dataVec.begin(), dataVec.end(), 0.5);
+
+  if (rank == 0)
+    MPI_Barrier(syncComm);
   Event _dataexchange("Data Send/Recv", true);
   for (int round = 0; round < options.rounds; ++round) {
     for (auto r : comRanks) {
@@ -174,7 +177,7 @@ int main(int argc, char **argv)
     }
   }
 
-  _dataexchange.stop();
+  _dataexchange.stop(true);
 
   EventRegistry::instance().finalize();
   EventRegistry::instance().printAll();
