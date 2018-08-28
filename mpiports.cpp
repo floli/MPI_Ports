@@ -148,37 +148,63 @@ int main(int argc, char **argv)
   _connect.stop(true);
 
   // ==============================
-  std::vector<double> dataVec(1000);
-  std::iota(dataVec.begin(), dataVec.end(), 0.5);
 
-  if (rank == 0)
-    MPI_Barrier(syncComm);
-  Event _dataexchange("Data Send/Recv", true);
-  for (int round = 0; round < options.rounds; ++round) {
-    for (auto r : comRanks) {
-      int actualRank;
-      MPI_Comm actualComm;
-      if (options.commType == single) {
-        actualRank = r;
-        actualComm = comms[0];
-      }
-      if (options.commType == many) {
-        actualRank = 0;
-        actualComm = comms[r];
-      }
-      if (options.participant == A) {
-        // DEBUG << "Receiving data from " << actualRank;
-        MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, MPI_ANY_TAG, actualComm, MPI_STATUS_IGNORE);
-      }
-      if (options.participant == B) {
-        // DEBUG << "Sending data to " << actualRank;
-        MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, 0, actualComm);
+  for (auto vecSize : {500, 2000, 4000}) {
+    std::vector<double> dataVec(vecSize);
+    std::iota(dataVec.begin(), dataVec.end(), 0.5);
+
+    if (rank == 0)
+      MPI_Barrier(syncComm);
+    Event _dataexchangeBA("Data BA " + std::to_string(vecSize), true);
+    for (int round = 0; round < options.rounds; ++round) {
+      for (auto r : comRanks) {
+        int actualRank;
+        MPI_Comm actualComm;
+        if (options.commType == single) {
+          actualRank = r;
+          actualComm = comms[0];
+        }
+        if (options.commType == many) {
+          actualRank = 0;
+          actualComm = comms[r];
+        }
+        if (options.participant == A) {
+          MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, MPI_ANY_TAG, actualComm, MPI_STATUS_IGNORE);
+        }
+        if (options.participant == B) {
+          MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, 0, actualComm);
+        }
       }
     }
+    _dataexchangeBA.stop(true);
+
+    if (rank == 0)
+      MPI_Barrier(syncComm);
+    Event _dataexchangeAB("Data AB "  + std::to_string(vecSize), true);
+    for (int round = 0; round < options.rounds; ++round) {
+      for (auto r : comRanks) {
+        int actualRank;
+        MPI_Comm actualComm;
+        if (options.commType == single) {
+          actualRank = r;
+          actualComm = comms[0];
+        }
+        if (options.commType == many) {
+          actualRank = 0;
+          actualComm = comms[r];
+        }
+        if (options.participant == B) {
+          MPI_Recv(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, MPI_ANY_TAG, actualComm, MPI_STATUS_IGNORE);
+        }
+        if (options.participant == A) {
+          MPI_Send(dataVec.data(), dataVec.size(), MPI_DOUBLE, actualRank, 0, actualComm);
+        }
+      }
+    }
+    _dataexchangeAB.stop(true);
   }
 
-  _dataexchange.stop(true);
-
+  
   EventRegistry::instance().finalize();
   EventRegistry::instance().printAll();
   MPI_Finalize();
