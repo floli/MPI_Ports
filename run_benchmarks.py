@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse, datetime, contextlib, json, multiprocessing, shlex, socket, subprocess, sys, time
 from pathlib import Path
 from shutil import copy

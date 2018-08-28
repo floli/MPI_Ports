@@ -28,12 +28,9 @@ df = df[df.Rank == 0]
 values = {
     "Publish" : [],
     "Connect" : [],
-    "Data AB 500" : [],
-    "Data BA 500" : [],
-    "Data AB 2000" : [],
-    "Data BA 2000" : [],
-    "Data AB 4000" : [],
-    "Data BA 4000" : []}
+    "Data 500" : [],
+    "Data 2000" : [],
+    "Data 4000" : []}
 
 
 for row in df.itertuples():
@@ -49,7 +46,6 @@ with open(args.file + ".csv", 'w', newline='') as csvfile:
         writer.writerow(row)
     
 for v in values:
-    print(v, values[v])
     plt.plot(sizes, values[v], "d-", label = v)
 
 
