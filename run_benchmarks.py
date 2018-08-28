@@ -43,7 +43,7 @@ def generate_test_sizes(mpisize, platform):
     elif platform == "supermuc":
         sizes = [28*i for i in node_numbers]
     else:
-        sizes = range(2, mpisize)
+        sizes = range(2, mpisize+1)
 
     return [i for i in sizes if i <= mpisize]
 
@@ -63,7 +63,7 @@ def get_mpi_cmd(platform):
 def get_machine_file(platform, size, inputfile):
     if platform == "supermuc":
         split_file(inputfile, size, size, "mfile.A", "mfile.B")
-        return "mfile.A", "mfile.B"
+        return "-f mfile.A", "-f mfile.B"
     else:
         return ["", ""]
     
@@ -90,7 +90,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
         cmdA = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
-            machinefile = "-f " + get_machine_file(args.platform, rank, args.mfile)[0],
+            machinefile = get_machine_file(args.platform, rank, args.mfile)[0],
             peers = peer,
             comm = commType,
             participant = "A",
@@ -98,7 +98,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
         cmdB = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
-            machinefile = "-f " + get_machine_file(args.platform, rank, args.mfile)[1],
+            machinefile = get_machine_file(args.platform, rank, args.mfile)[1],
             peers = peer,
             comm = commType,
             participant = "B",
