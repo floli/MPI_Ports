@@ -53,6 +53,9 @@ int main(int argc, char **argv)
   std::string participant = argv[1];
 
   std::string portName;
+
+  cout << "Started Simple MPI Ports Tester" << endl;
+  
   // Open and write port
   if (participant == "A" and rank == 0) {
     portName = openPort();
