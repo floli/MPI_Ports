@@ -3,7 +3,6 @@ from pathlib import Path
 from shutil import copy
 
 def launchSingleRun(cmd, outfile = None):
-    outfile = None
     ostream = open(outfile, "a") if outfile else sys.stdout
     print(cmd)
     with contextlib.redirect_stdout(ostream):
