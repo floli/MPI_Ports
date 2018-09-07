@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <fstream>
 #include <mpi.h>
 #include <boost/filesystem.hpp>
 #include "logging.hpp"

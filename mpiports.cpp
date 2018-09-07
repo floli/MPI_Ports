@@ -88,15 +88,15 @@ int main(int argc, char **argv)
   DEBUG << "Finished publishing";
   if (rank == 0)
     MPI_Barrier(syncComm);
-  
-  Event _connect("Connect", true);
 
+  INFO << "Starting connecting on " << size << " ranks.";
+  Event _connect("Connect", true);
   std::string portName;
   if (options.participant == A) { // receives connections
     if (options.commType == single) {
       if (rank == 0)
         portName = lookupPort(options);
-      INFO << "Accepting connection on " << portName;
+      DEBUG << "Accepting connection on " << portName;
       MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
       DEBUG << "Received connection on " << portName;
     }
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
       
       for (auto r : comRanks) {
         MPI_Comm icomm;
-        INFO << "Accepting connection on " << portName;
+        DEBUG << "Accepting connection on " << portName;
         MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &icomm);
         DEBUG << "Accepted connection on " << portName;
         DEBUG << "icomm size = " << getRemoteCommSize(icomm);
