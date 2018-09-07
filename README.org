@@ -1,0 +1,6 @@
+* HazelHen
+export CRAYPE_LINK_TYPE=dynamic
+cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -DCMAKE_C_FLAGS="-craympich-dpm" -DCMAKE_CXX_FLAGS="-craympich-dpm" -DCMAKE_BUILD_TYPE=Release
+
+aprun -p fl_domain ...
+* HazelHen TDS
