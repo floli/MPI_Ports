@@ -31,6 +31,7 @@ find_package(Boost 1.60.0
   REQUIRED
   COMPONENTS log log_setup program_options filesystem system thread unit_test_framework)
 add_definitions(-DBOOST_ALL_DYN_LINK)
+include_directories(${Boost_INCLUDE_DIRS})
 
 # add_library(EventTimings EventTimings.cpp TableWriter.cpp)
 
