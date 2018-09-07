@@ -1,0 +1,23 @@
+#PBS -N MPI_Ports_SimpleTester
+#PBS -l nodes=2:ppn=24
+#PBS -l walltime=00:05:00
+#PBS -q test
+
+module swap PrgEnv-cray PrgEnv-gnu
+
+# Change to the directory that the job was submitted from
+cd $PBS_O_WORKDIR
+
+echo $PWD
+
+aprun -n 24 ./simple_mpi_ports_tester A &
+procA=$!
+echo "Process 1 in background"
+
+aprun -n 24 ./simple_mpi_ports_tester B
+procB=$!
+echo "Process 2 finished."
+
+wait $procA $procB
+
+echo "Finished"

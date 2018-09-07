@@ -1,0 +1,15 @@
+#PBS -N MPI_Ports
+#PBS -l nodes=2:ppn=24
+#PBS -l walltime=00:20:00
+#PBS -q test
+
+module swap PrgEnv-cray PrgEnv-gnu
+
+# Change to the directory that the job was submitted from
+cd $PBS_O_WORKDIR
+
+echo $PWD
+
+aprun -n 24 ./mpiports --participant=A --commType=single --publishingType=file --peers=0.3 --debug &
+aprun -n 24 ./mpiports --participant=B --commType=single --publishingType=file --peers=0.3 --debug
+

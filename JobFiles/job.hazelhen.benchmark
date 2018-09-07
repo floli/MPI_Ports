@@ -1,0 +1,16 @@
+#PBS -N MPI_Ports
+#PBS -l nodes=200:ppn=24
+#PBS -l walltime=00:25:00
+#PBS -q test
+
+module swap PrgEnv-cray PrgEnv-gnu
+
+# Change to the directory that the job was submitted from
+cd $PBS_O_WORKDIR
+
+# MPISIZE=7168 # = 512/2 * 28, maximum general job size
+# MPISIZE=4608 # = 384/2 * 24, maximum test size
+MPISIZE=240 # = 200/2 * 24
+
+python run_benchmarks.py --mpisize=$MPISIZE --commType=many --peers=0.3 --platform=hazelhen
+python run_benchmarks.py --mpisize=$MPISIZE --commType=single --peers=0.3 --platform=hazelhen
