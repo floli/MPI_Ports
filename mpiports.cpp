@@ -54,7 +54,7 @@ int main(int argc, char **argv)
   int size = getCommSize();
 
   auto syncComm = createSyncIcomm(options.participant, options.publishDirectory); // First barrier
-  EventRegistry::instance().initialize(options.participant == A ? "A" : "B");
+  EventRegistry::instance().initialize(options.participant == A ? "A" : "B", options.runName);
 
   std::map<int, MPI_Comm> comms;
   

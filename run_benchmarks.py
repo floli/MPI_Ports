@@ -4,7 +4,6 @@ from shutil import copy
 
 def launchSingleRun(cmd, outfile = None):
     ostream = open(outfile, "a") if outfile else sys.stdout
-    print(cmd)
     with contextlib.redirect_stdout(ostream):
         cp = subprocess.run(cmd, stdout = sys.stdout, stderr = subprocess.STDOUT, check = True)
     
@@ -20,7 +19,7 @@ def launchRun(cmdA, cmdB, outfileA = None, outfileB = None):
 
 
 def split_file(inputfile, lines1, lines2, output1, output2):
-    """ Split inputfile in two files, each containing linesN lines. """
+    """ Split inputfile in two files, each containing linesN lines. Used for MPI machine files."""
     with open(inputfile) as f:
         lines = f.readlines()
 
@@ -69,8 +68,8 @@ def get_machine_file(platform, size, inputfile):
 def removeEventFiles(participant):
     p = Path(participant)
     try:
-        Path("Events-%s.log" % participant).unlink()
-        Path("EventTimings-%s.log" % participant).unlink()
+        Path("%s-events.log" % participant).unlink()
+        Path("%s-eventTimings.log" % participant).unlink()
     except FileNotFoundError:
         pass
 
@@ -85,7 +84,7 @@ def doScaling(name, ranks, peers, commTypes, debug):
     
     file_pattern = "{name}-{date}-{participant}.{suffix}"
     for rank, peer, commType in zip(ranks, peers, commTypes):
-        cmd = "{mpi} -n {size} {machinefile} ./mpiports --peers {peers} --commType {comm} --rounds 1000 --participant {participant} {debug}"
+        cmd = "{mpi} -n {size} {machinefile} ./mpiports --peers {peers} --commType {comm} --rounds 1000 --participant {participant} {debug} --runName {runName}"
         cmdA = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
@@ -93,7 +92,8 @@ def doScaling(name, ranks, peers, commTypes, debug):
             peers = peer,
             comm = commType,
             participant = "A",
-            debug = "--debug" if debug else "")
+            debug = "--debug" if debug else "",
+            runName = commType)
         cmdB = cmd.format(
             mpi = get_mpi_cmd(args.platform),
             size = rank,
@@ -101,7 +101,8 @@ def doScaling(name, ranks, peers, commTypes, debug):
             peers = peer,
             comm = commType,
             participant = "B",
-            debug = "--debug" if debug else "")
+            debug = "--debug" if debug else "",
+            runName = commType)
 
         print("Running on ranks = {}".format(rank))
         print(cmdA)
@@ -110,10 +111,10 @@ def doScaling(name, ranks, peers, commTypes, debug):
                   file_pattern.format(suffix = "out", participant = "A", **file_info),
                   file_pattern.format(suffix = "out", participant = "B", **file_info))                  
 
-    copy("Events-A.log", file_pattern.format(suffix = "events", participant = "A", **file_info))
-    copy("EventTimings-A.log", file_pattern.format(suffix= "timings", participant = "A", **file_info))
-    copy("Events-B.log", file_pattern.format(suffix = "events", participant = "B", **file_info))
-    copy("EventTimings-B.log", file_pattern.format(suffix= "timings", participant = "B", **file_info))
+    copy("A-events.log", file_pattern.format(suffix = "events", participant = "A", **file_info))
+    copy("A-eventTimings.log", file_pattern.format(suffix= "timings", participant = "A", **file_info))
+    copy("B-events.log", file_pattern.format(suffix = "events", participant = "B", **file_info))
+    copy("B-eventTimings.log", file_pattern.format(suffix= "timings", participant = "B", **file_info))
 
     with open("{name}-{date}.meta".format(**file_info), "w") as f:
         json.dump({"name"  : name,
@@ -139,9 +140,10 @@ args = parser.parse_args()
 
 sizes = generate_test_sizes(args.mpisize, args.platform)
 
-doScaling(name = "benchmark_mpiports",
-          ranks = sizes,
-          peers = [args.peers] * len(sizes),
-          commTypes = [args.commType] * len(sizes),
-          debug = args.debug)
+for i in range(5):
+    doScaling(name = "benchmark_mpiports",
+              ranks = sizes,
+              peers = [args.peers] * len(sizes),
+              commTypes = [args.commType] * len(sizes),
+              debug = args.debug)
               

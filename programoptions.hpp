@@ -15,6 +15,7 @@ struct Options
   double peers;
   double rounds;
   bool debug;
+  std::string runName;
 
   explicit Options(boost::program_options::variables_map opt) {
     participant = opt["participant"].as<std::string>() == "A" ? A : B;
@@ -24,6 +25,7 @@ struct Options
     pubType = opt["publishingType"].as<std::string>() == "file" ? file : server;
     rounds = opt["rounds"].as<double>();
     debug = opt["debug"].as<bool>();
+    runName = opt["runName"].as<std::string>();
   }
 };
 
@@ -40,7 +42,9 @@ Options getOptions(int argc, char *argv[])
     ("commType,c", po::value<std::string>()->required(), "Intercom type: 'single' or 'many'")
     ("publishingType,m", po::value<std::string>()->default_value("file"), "Publishing type: 'file' or 'server'")
     ("rounds,r", po::value<double>()->default_value(1), "Number of data exchange rounds")    
-    ("debug", po::bool_switch(), "Enable debug output");
+    ("debug", po::bool_switch(), "Enable debug output")
+    ("runName", po::value<std::string>()->default_value(""), "runName, forward to EventTimings");
+
 
   po::variables_map vm;
 
