@@ -4,3 +4,10 @@ CMakeFiles
 cmake_install.cmake
 Makefile
 publish/
+*.events
+*.out
+*.timings
+*.meta
+__pycache__
+*.log
+*.csv
