@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
   std::map<int, MPI_Comm> comms;
   
-  // ==============================
+  // ============================== BEGIN COMPUTE CONNECTIONS
   Event _determineNumCon("Compute connections", true);
   std::vector<int> comRanks;
   if (options.participant == A)
@@ -67,12 +67,12 @@ int main(int argc, char **argv)
     comRanks = getRanks(options.peers, size, rank); // to whom I do connect?
 
   _determineNumCon.stop(true);
-  // ==============================
+  // ============================== END COMPUTE CONNECTIONS
   
   if (options.participant == A)
     removeDir(options.publishDirectory); // Remove directory, followed by a barrier
 
-  // ==============================
+  // ============================== BEGIN PUBLISH
   Event _publish("Publish", true);
   if (options.participant == A) {
     if (options.commType == single and rank == 0)
@@ -83,26 +83,44 @@ int main(int argc, char **argv)
         publishPort(options, openPort());
   }
   _publish.stop(true);
-  // ==============================
+  // ============================== END PUBLISH
 
   DEBUG << "Finished publishing";
-  if (rank == 0)
-    MPI_Barrier(syncComm);
+  if (rank == 0) MPI_Barrier(syncComm);
 
+  // ============================== BEGIN LOOKUP
+  std::list<std::string> portNames;
+  Event _lookup("Lookup", true);
+  if (options.commType == single and rank == 0)
+    portNames.push_back(lookupPort(options)); // Single: There is only one port
+  if (options.commType == many and options.participant == A)
+    portNames.push_back(lookupPort(options, rank)); // A received connecct, only my port
+  if (options.commType == many and options.participant == B) {
+    for (auto r : comRanks) { // All the ports we conect to
+      portNames.push_back(lookupPort(options, r));
+    }
+  }
+  _lookup.stop(true);  
+  // ============================== END LOOKUP
+  
+  DEBUG << "Finished lookup";
+  if (rank == 0) MPI_Barrier(syncComm);
+
+    
   INFO << "Starting connecting on " << size << " ranks.";
   Event _connect("Connect", true);
   std::string portName;
   if (options.participant == A) { // receives connections
     if (options.commType == single) {
       if (rank == 0)
-        portName = lookupPort(options);
+        portName = portNames.front();
       DEBUG << "Accepting connection on " << portName;
       MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
       DEBUG << "Received connection on " << portName;
     }
 
     if (options.commType == many) {
-      portName = lookupPort(options, rank);
+      portName = portNames.front();
       
       for (auto r : comRanks) {
         MPI_Comm icomm;
@@ -123,7 +141,7 @@ int main(int argc, char **argv)
     // sleep(1000);
     if (options.commType == single) {
       if (rank == 0)
-        portName = lookupPort(options);
+        portName = portNames.front();
       INFO << "Connecting to " << portName;
       MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
       DEBUG << "Connected to " << portName;
@@ -131,7 +149,7 @@ int main(int argc, char **argv)
     if (options.commType == many) {
       for (auto r : comRanks) {
         MPI_Comm icomm;
-        portName = lookupPort(options, r);
+        portName = portNames.front();
         INFO << "Connecting to rank " << r << " on " << portName;
         MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &icomm);
         DEBUG << "icomm size = " << getRemoteCommSize(icomm);
@@ -140,6 +158,7 @@ int main(int argc, char **argv)
         // int connectedRank = -1;
         // MPI_Recv(&connectedRank, 1, MPI_INT, 0, MPI_ANY_TAG, icomm, MPI_STATUS_IGNORE);
         comms[r] = icomm;
+        portNames.pop_front();
       }
     }
     // for (auto &c : comms)
