@@ -47,7 +47,7 @@ def generate_test_sizes(mpisize, platform):
 
 def get_mpi_cmd(platform):
     if platform == "hazelhen":
-        return "aprun"
+        return "aprun -p fl_domain"
     elif platform == "supermuc":
         return "mpiexec"
     elif platform == "mpich-opt":

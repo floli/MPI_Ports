@@ -3,7 +3,11 @@
 #PBS -l walltime=00:20:00
 #PBS -q test
 
+activate_TDS
+
 module swap PrgEnv-cray PrgEnv-gnu
+module load torque
+module load alps
 
 # Change to the directory that the job was submitted from
 cd $PBS_O_WORKDIR
