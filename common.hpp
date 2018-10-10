@@ -47,16 +47,16 @@ int getRemoteCommSize(MPI_Comm comm)
 int getCommRank(MPI_Comm comm = MPI_COMM_WORLD)
 {
   int rank = -1;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(comm, &rank);
   return rank;
 }
 
-void removeDir(boost::filesystem::path path)
+void removeDir(boost::filesystem::path path, MPI_Comm comm = MPI_COMM_WORLD)
 {
-  if (getCommRank() == 0) {
+  if (getCommRank(comm) == 0) {
     boost::filesystem::remove_all(path);
   }
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(comm);
 }
 
 /// Aquires a port name from MPI
@@ -167,27 +167,29 @@ std::vector<int> invertGetRanks(double peers, int size, int rank)
 
 
 /// Creates an intercom on rank 0 that can be used to synchronize both particpants
-MPI_Comm createSyncIcomm(ParticipantType p, boost::filesystem::path publishDirectory)
+MPI_Comm createSyncIcomm(ParticipantType p,
+                         boost::filesystem::path publishDirectory,
+                         MPI_Comm comm)
 {
   int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(comm, &rank);
 
   if (rank != 0)
     return MPI_COMM_NULL;
 
-  MPI_Comm comm;
+  MPI_Comm syncComm;
   if (p == A) {
     auto port = openPort();
     writePort(publishDirectory / "sync-intercomm.address", port);
-    MPI_Comm_accept(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &comm);
+    MPI_Comm_accept(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &syncComm);
   }
   if (p == B) {
     sleep(100);
     auto port = readPort(publishDirectory / "sync-intercomm.address");
-    MPI_Comm_connect(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &comm);
+    MPI_Comm_connect(port.c_str(), MPI_INFO_NULL, 0, MPI_COMM_SELF, &syncComm);
   }
   DEBUG << "Created sync intercomm";
-  return comm;
+  return syncComm;
 }
 
 }

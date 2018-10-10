@@ -49,12 +49,25 @@ int main(int argc, char **argv)
   auto options = getOptions(argc, argv);
   logging::init(options.debug);
   // MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+  int rank = getCommRank(MPI_COMM_WORLD);
+  int size = getCommSize(MPI_COMM_WORLD);
+  
+  MPI_Comm commWorld;
 
-  int rank = getCommRank();
-  int size = getCommSize();
+  if (options.split) {
+    int color = rank < size/2 ? 0 : 1; // split the group into halves
+    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &commWorld); // use rank as ordering, so order is preserved
+    options.participant = color == 0 ? A : B; // overwrite participant
+  }
+  else
+    MPI_Comm_dup(MPI_COMM_WORLD, &commWorld);
+ 
+  
+  rank = getCommRank(commWorld);
+  size = getCommSize(commWorld);
 
-  auto syncComm = createSyncIcomm(options.participant, options.publishDirectory); // First barrier
-  EventRegistry::instance().initialize(options.participant == A ? "A" : "B", options.runName);
+  auto syncComm = createSyncIcomm(options.participant, options.publishDirectory, commWorld); // First barrier
+  EventRegistry::instance().initialize(options.participant == A ? "A" : "B", options.runName, commWorld);
 
   std::map<int, MPI_Comm> comms;
   
@@ -70,7 +83,7 @@ int main(int argc, char **argv)
   // ============================== END COMPUTE CONNECTIONS
   
   if (options.participant == A)
-    removeDir(options.publishDirectory); // Remove directory, followed by a barrier
+    removeDir(options.publishDirectory, commWorld); // Remove directory, followed by a barrier
 
   // ============================== BEGIN PUBLISH
   Event _publish("Publish", true);
@@ -115,7 +128,7 @@ int main(int argc, char **argv)
       if (rank == 0)
         portName = portNames.front();
       DEBUG << "Accepting connection on " << portName;
-      MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
+      MPI_Comm_accept(portName.c_str(), MPI_INFO_NULL, 0, commWorld, &comms[0]);
       DEBUG << "Received connection on " << portName;
     }
 
@@ -143,7 +156,7 @@ int main(int argc, char **argv)
       if (rank == 0)
         portName = portNames.front();
       INFO << "Connecting to " << portName;
-      MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, MPI_COMM_WORLD, &comms[0]);
+      MPI_Comm_connect(portName.c_str(), MPI_INFO_NULL, 0, commWorld, &comms[0]);
       DEBUG << "Connected to " << portName;
     }
     if (options.commType == many) {
