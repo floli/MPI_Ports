@@ -19,6 +19,7 @@ message(STATUS "Build configuration: " ${CMAKE_BUILD_TYPE})
 
 
 add_subdirectory(EventTimings)
+include_directories(EventTimings/include/EventTimings)
 
 find_package (Threads REQUIRED)
 

@@ -4,7 +4,6 @@
 import argparse, csv, sys
 import matplotlib.pyplot as plt
 import pandas as pd
-from EventTimings.EventTimings import getDataFrame
 
 from ipdb import set_trace
 

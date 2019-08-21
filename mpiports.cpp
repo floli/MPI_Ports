@@ -3,10 +3,12 @@
 #include <numeric>
 #include <boost/filesystem.hpp>
 #include "common.hpp"
-#include "EventTimings/EventTimings.hpp"
+#include "EventUtils.hpp"
 #include "programoptions.hpp"
 #include "logging.hpp"
 #include "prettyprint.hpp"
+
+using namespace EventTimings;
 
 namespace mp {
 
